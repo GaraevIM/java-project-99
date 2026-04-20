@@ -5,10 +5,13 @@
 
 # Welcome App
 
-Простое Spring Boot приложение.
+Простое Spring Boot приложение с обработчиком `/welcome`.
 
 ## Локальный запуск
 
-```bash
-cd app
-./gradlew bootRun
+    cd app
+    ./gradlew bootRun
+
+## Deploy
+
+https://java-project-99-vvbc.onrender.com/welcome
