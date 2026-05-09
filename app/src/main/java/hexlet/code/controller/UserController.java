@@ -7,6 +7,8 @@ import hexlet.code.service.UserService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,13 +44,25 @@ public class UserController {
     }
 
     @PutMapping("/api/users/{id}")
-    public User update(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO data) {
+    public User update(
+            @PathVariable Long id,
+            @Valid @RequestBody UserUpdateDTO data,
+            Authentication authentication
+    ) {
+        if (!userService.isOwner(id, authentication.getName())) {
+            throw new AccessDeniedException("Access denied");
+        }
+
         return userService.update(id, data);
     }
 
     @DeleteMapping("/api/users/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable Long id, Authentication authentication) {
+        if (!userService.isOwner(id, authentication.getName())) {
+            throw new AccessDeniedException("Access denied");
+        }
+
         userService.delete(id);
     }
 }

@@ -6,7 +6,7 @@ import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import java.util.List;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,10 +14,11 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<User> getAll() {
@@ -63,6 +64,10 @@ public class UserService {
     public void delete(Long id) {
         var user = getById(id);
         userRepository.delete(user);
+    }
+
+    public boolean isOwner(Long id, String email) {
+        return getById(id).getEmail().equals(email);
     }
 
     public void createAdminIfNotExists() {
