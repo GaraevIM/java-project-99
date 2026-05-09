@@ -27,6 +27,29 @@ class UserControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    private static final String VALID_USER_JSON = """
+            {
+                "email": "test@example.com",
+                "firstName": "Test",
+                "lastName": "User",
+                "password": "qwerty"
+            }
+            """;
+
+    private static final String INVALID_USER_JSON = """
+            {
+                "email": "bad-email",
+                "password": "qw"
+            }
+            """;
+
+    private static final String UPDATE_JSON = """
+            {
+                "email": "updated@example.com",
+                "password": "new-password"
+            }
+            """;
+
     @Test
     void testGetUsers() throws Exception {
         mockMvc.perform(get("/api/users"))
@@ -48,74 +71,42 @@ class UserControllerTest {
 
     @Test
     void testCreateUser() throws Exception {
-        var body = """
-                {
-                    "email": "john@example.com",
-                    "firstName": "John",
-                    "lastName": "Doe",
-                    "password": "qwerty"
-                }
-                """;
-
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(VALID_USER_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value("john@example.com"))
-                .andExpect(jsonPath("$.firstName").value("John"))
-                .andExpect(jsonPath("$.lastName").value("Doe"))
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.firstName").value("Test"))
+                .andExpect(jsonPath("$.lastName").value("User"))
                 .andExpect(jsonPath("$.password").doesNotExist());
     }
 
     @Test
     void testCreateUserWithInvalidData() throws Exception {
-        var body = """
-                {
-                    "email": "wrong-email",
-                    "password": "qw"
-                }
-                """;
-
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(INVALID_USER_JSON))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void testUpdateUser() throws Exception {
-        var body = """
-                {
-                    "email": "jack@example.com",
-                    "firstName": "Jack",
-                    "lastName": "Jons",
-                    "password": "qwerty"
-                }
-                """;
-
         var result = mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(VALID_USER_JSON))
                 .andExpect(status().isCreated())
                 .andReturn();
 
         var response = result.getResponse().getContentAsString();
         var id = response.replaceAll(".*\"id\":(\\d+).*", "$1");
 
-        var updateBody = """
-                {
-                    "email": "jack@yahoo.com",
-                    "password": "new-password"
-                }
-                """;
-
         mockMvc.perform(put("/api/users/" + id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateBody))
+                        .content(UPDATE_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("jack@yahoo.com"))
-                .andExpect(jsonPath("$.firstName").value("Jack"))
-                .andExpect(jsonPath("$.lastName").value("Jons"))
+                .andExpect(jsonPath("$.email").value("updated@example.com"))
+                .andExpect(jsonPath("$.firstName").value("Test"))
+                .andExpect(jsonPath("$.lastName").value("User"))
                 .andExpect(jsonPath("$.password").doesNotExist());
     }
 
@@ -123,31 +114,17 @@ class UserControllerTest {
     void testUpdateUserWithInvalidData() throws Exception {
         var user = userRepository.findAll().getFirst();
 
-        var body = """
-                {
-                    "email": "bad-email",
-                    "password": "12"
-                }
-                """;
-
         mockMvc.perform(put("/api/users/" + user.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(INVALID_USER_JSON))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void testDeleteUser() throws Exception {
-        var body = """
-                {
-                    "email": "delete@example.com",
-                    "password": "qwerty"
-                }
-                """;
-
         var result = mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(VALID_USER_JSON))
                 .andExpect(status().isCreated())
                 .andReturn();
 
