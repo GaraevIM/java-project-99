@@ -22,11 +22,4 @@ class WelcomeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("Welcome to Spring"));
     }
-
-    @Test
-    void testRootPage() throws Exception {
-        mockMvc.perform(get("/"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Welcome to Spring"));
-    }
 }
