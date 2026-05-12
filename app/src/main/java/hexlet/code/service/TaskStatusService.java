@@ -2,8 +2,10 @@ package hexlet.code.service;
 
 import hexlet.code.dto.TaskStatusCreateDTO;
 import hexlet.code.dto.TaskStatusUpdateDTO;
+import hexlet.code.exception.ResourceConflictException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.model.TaskStatus;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -13,8 +15,11 @@ public class TaskStatusService {
 
     private final TaskStatusRepository taskStatusRepository;
 
-    public TaskStatusService(TaskStatusRepository taskStatusRepository) {
+    private final TaskRepository taskRepository;
+
+    public TaskStatusService(TaskStatusRepository taskStatusRepository, TaskRepository taskRepository) {
         this.taskStatusRepository = taskStatusRepository;
+        this.taskRepository = taskRepository;
     }
 
     public List<TaskStatus> getAll() {
@@ -49,6 +54,11 @@ public class TaskStatusService {
 
     public void delete(Long id) {
         var status = getById(id);
+
+        if (taskRepository.existsByTaskStatus(status)) {
+            throw new ResourceConflictException("Task status has tasks");
+        }
+
         taskStatusRepository.delete(status);
     }
 
