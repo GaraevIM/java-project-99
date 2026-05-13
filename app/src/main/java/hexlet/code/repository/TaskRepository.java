@@ -1,5 +1,6 @@
 package hexlet.code.repository;
 
+import hexlet.code.model.Label;
 import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
@@ -9,4 +10,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     boolean existsByAssignee(User user);
 
     boolean existsByTaskStatus(TaskStatus taskStatus);
+
+    boolean existsByLabelsContaining(Label label);
 }

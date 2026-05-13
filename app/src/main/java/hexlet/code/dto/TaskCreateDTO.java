@@ -2,6 +2,7 @@ package hexlet.code.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import java.util.Set;
 
 public class TaskCreateDTO {
 
@@ -17,6 +18,9 @@ public class TaskCreateDTO {
 
     @JsonProperty("assignee_id")
     private Long assigneeId;
+
+    @JsonProperty("label_ids")
+    private Set<Long> labelIds;
 
     public Integer getIndex() {
         return index;
@@ -56,5 +60,13 @@ public class TaskCreateDTO {
 
     public void setAssigneeId(Long assignee) {
         this.assigneeId = assignee;
+    }
+
+    public Set<Long> getLabelIds() {
+        return labelIds;
+    }
+
+    public void setLabelIds(Set<Long> labelIds) {
+        this.labelIds = labelIds;
     }
 }

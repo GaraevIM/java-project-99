@@ -3,11 +3,15 @@ package hexlet.code.service;
 import hexlet.code.dto.TaskCreateDTO;
 import hexlet.code.dto.TaskUpdateDTO;
 import hexlet.code.exception.ResourceNotFoundException;
+import hexlet.code.model.Label;
 import hexlet.code.model.Task;
+import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,14 +23,18 @@ public class TaskService {
 
     private final UserRepository userRepository;
 
+    private final LabelRepository labelRepository;
+
     public TaskService(
             TaskRepository taskRepository,
             TaskStatusRepository taskStatusRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            LabelRepository labelRepository
     ) {
         this.taskRepository = taskRepository;
         this.taskStatusRepository = taskStatusRepository;
         this.userRepository = userRepository;
+        this.labelRepository = labelRepository;
     }
 
     public List<Task> getAll() {
@@ -52,6 +60,10 @@ public class TaskService {
             var assignee = userRepository.findById(data.getAssigneeId())
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
             task.setAssignee(assignee);
+        }
+
+        if (data.getLabelIds() != null) {
+            task.setLabels(getLabelsByIds(data.getLabelIds()));
         }
 
         return taskRepository.save(task);
@@ -84,11 +96,25 @@ public class TaskService {
             task.setAssignee(assignee);
         }
 
+        if (data.getLabelIds() != null) {
+            task.setLabels(getLabelsByIds(data.getLabelIds()));
+        }
+
         return taskRepository.save(task);
     }
 
     public void delete(Long id) {
         var task = getById(id);
         taskRepository.delete(task);
+    }
+
+    private Set<Label> getLabelsByIds(Set<Long> ids) {
+        var labels = labelRepository.findAllByIdIn(ids);
+
+        if (labels.size() != ids.size()) {
+            throw new ResourceNotFoundException("Label not found");
+        }
+
+        return new HashSet<>(labels);
     }
 }

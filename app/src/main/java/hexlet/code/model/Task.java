@@ -7,9 +7,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
@@ -35,6 +39,15 @@ public class Task {
     @JoinColumn(name = "assignee_id")
     @JsonIgnore
     private User assignee;
+
+    @ManyToMany
+    @JoinTable(
+            name = "task_labels",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "label_id")
+    )
+    @JsonIgnore
+    private Set<Label> labels = new HashSet<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -83,6 +96,14 @@ public class Task {
         this.assignee = assignee;
     }
 
+    public Set<Label> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(Set<Label> labels) {
+        this.labels = labels;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -95,5 +116,12 @@ public class Task {
     @JsonProperty("assignee_id")
     public Long getAssigneeId() {
         return assignee == null ? null : assignee.getId();
+    }
+
+    @JsonProperty("label_ids")
+    public Set<Long> getLabelIds() {
+        var ids = new HashSet<Long>();
+        labels.forEach(label -> ids.add(label.getId()));
+        return ids;
     }
 }
