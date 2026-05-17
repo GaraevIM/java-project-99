@@ -1,5 +1,6 @@
 package hexlet.code.controller;
 
+import io.sentry.Sentry;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -7,7 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestErrorController {
 
     @GetMapping("/api/test-error")
-    public void testError() {
-        throw new RuntimeException("Test Sentry error");
+    public String testError() {
+        var exception = new RuntimeException("Test Sentry error");
+        Sentry.captureException(exception);
+        throw exception;
     }
 }
