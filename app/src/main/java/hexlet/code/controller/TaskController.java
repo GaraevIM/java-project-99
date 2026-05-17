@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,8 +27,13 @@ public class TaskController {
     }
 
     @GetMapping("/api/tasks")
-    public List<Task> index() {
-        return taskService.getAll();
+    public List<Task> index(
+            @RequestParam(required = false) String titleCont,
+            @RequestParam(required = false) Long assigneeId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long labelId
+    ) {
+        return taskService.getAll(titleCont, assigneeId, status, labelId);
     }
 
     @GetMapping("/api/tasks/{id}")

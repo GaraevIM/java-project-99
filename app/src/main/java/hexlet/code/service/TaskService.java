@@ -9,9 +9,11 @@ import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
+import jakarta.persistence.criteria.JoinType;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,8 +39,9 @@ public class TaskService {
         this.labelRepository = labelRepository;
     }
 
-    public List<Task> getAll() {
-        return taskRepository.findAll();
+    public List<Task> getAll(String titleCont, Long assigneeId, String status, Long labelId) {
+        var specification = buildSpecification(titleCont, assigneeId, status, labelId);
+        return taskRepository.findAll(specification);
     }
 
     public Task getById(Long id) {
@@ -116,5 +119,62 @@ public class TaskService {
         }
 
         return new HashSet<>(labels);
+    }
+
+    private Specification<Task> buildSpecification(
+            String titleCont,
+            Long assigneeId,
+            String status,
+            Long labelId
+    ) {
+        return Specification.where(titleContains(titleCont))
+                .and(hasAssignee(assigneeId))
+                .and(hasStatus(status))
+                .and(hasLabel(labelId));
+    }
+
+    private Specification<Task> titleContains(String titleCont) {
+        return (root, query, builder) -> {
+            if (titleCont == null || titleCont.isBlank()) {
+                return null;
+            }
+
+            return builder.like(
+                    builder.lower(root.get("title")),
+                    "%" + titleCont.toLowerCase() + "%"
+            );
+        };
+    }
+
+    private Specification<Task> hasAssignee(Long assigneeId) {
+        return (root, query, builder) -> {
+            if (assigneeId == null) {
+                return null;
+            }
+
+            return builder.equal(root.get("assignee").get("id"), assigneeId);
+        };
+    }
+
+    private Specification<Task> hasStatus(String status) {
+        return (root, query, builder) -> {
+            if (status == null || status.isBlank()) {
+                return null;
+            }
+
+            return builder.equal(root.get("taskStatus").get("slug"), status);
+        };
+    }
+
+    private Specification<Task> hasLabel(Long labelId) {
+        return (root, query, builder) -> {
+            if (labelId == null) {
+                return null;
+            }
+
+            query.distinct(true);
+            var labels = root.join("labels", JoinType.INNER);
+            return builder.equal(labels.get("id"), labelId);
+        };
     }
 }
