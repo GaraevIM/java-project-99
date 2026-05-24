@@ -39,8 +39,7 @@ public class SecurityConfig {
                                 "/index.html",
                                 "/assets/**",
                                 "/welcome",
-                                "/api/login",
-                                "/api/test-error"
+                                "/api/login"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
