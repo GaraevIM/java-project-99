@@ -1,6 +1,8 @@
 package hexlet.code.config;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import java.security.SecureRandom;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +27,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-    private static final String SECRET = "java-project-99-secret-key-for-jwt-token-generation";
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -39,7 +39,9 @@ public class SecurityConfig {
                                 "/index.html",
                                 "/assets/**",
                                 "/welcome",
-                                "/api/login"
+                                "/api/login",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
@@ -48,15 +50,20 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtEncoder jwtEncoder() {
-        var secretKey = new SecretKeySpec(SECRET.getBytes(), "HmacSHA256");
-        return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey));
+    public SecretKey jwtSecretKey() {
+        var key = new byte[64];
+        new SecureRandom().nextBytes(key);
+        return new SecretKeySpec(key, "HmacSHA256");
     }
 
     @Bean
-    public JwtDecoder jwtDecoder() {
-        var secretKey = new SecretKeySpec(SECRET.getBytes(), "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(secretKey)
+    public JwtEncoder jwtEncoder(SecretKey jwtSecretKey) {
+        return new NimbusJwtEncoder(new ImmutableSecret<>(jwtSecretKey));
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder(SecretKey jwtSecretKey) {
+        return NimbusJwtDecoder.withSecretKey(jwtSecretKey)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
     }
