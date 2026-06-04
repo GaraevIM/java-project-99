@@ -27,6 +27,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -52,7 +54,7 @@ public class SecurityConfig {
     @Bean
     public SecretKey jwtSecretKey() {
         var key = new byte[64];
-        new SecureRandom().nextBytes(key);
+        SECURE_RANDOM.nextBytes(key);
         return new SecretKeySpec(key, "HmacSHA256");
     }
 
