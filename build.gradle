@@ -1,0 +1,15 @@
+tasks.register("clean") {
+    dependsOn gradle.includedBuild("app").task(":clean")
+}
+
+tasks.register("test") {
+    dependsOn gradle.includedBuild("app").task(":test")
+}
+
+tasks.register("jacocoTestReport") {
+    dependsOn gradle.includedBuild("app").task(":jacocoTestReport")
+}
+
+tasks.register("check") {
+    dependsOn gradle.includedBuild("app").task(":check")
+}
