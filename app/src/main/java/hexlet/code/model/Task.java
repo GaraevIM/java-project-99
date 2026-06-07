@@ -118,8 +118,8 @@ public class Task {
         return assignee == null ? null : assignee.getId();
     }
 
-    @JsonProperty("label_ids")
-    public Set<Long> getLabelIds() {
+    @JsonProperty("taskLabelIds")
+    public Set<Long> getTaskLabelIds() {
         var ids = new HashSet<Long>();
         labels.forEach(label -> ids.add(label.getId()));
         return ids;
