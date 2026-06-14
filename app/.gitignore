@@ -6,17 +6,11 @@ out/
 bin/
 
 .idea/
-app/.idea/
 *.iws
 *.iml
 *.ipr
 
 .vscode/
-
-node_modules/
-package-lock.json
-
-src/
 
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
