@@ -3,15 +3,59 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=GaraevIM_java-project-99&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=GaraevIM_java-project-99)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=GaraevIM_java-project-99&metric=coverage)](https://sonarcloud.io/summary/new_code?id=GaraevIM_java-project-99)
 
-# Welcome App
+# Task Manager
 
-Простое Spring Boot приложение с обработчиком `/welcome`.
+Менеджер задач, разработанный на Spring Boot.
 
-## Локальный запуск
+Приложение позволяет управлять пользователями, задачами, статусами задач и метками. Реализована JWT-аутентификация, валидация данных, REST API и документация Swagger/OpenAPI.
 
-    cd app
-    ./gradlew bootRun
+## Features
+
+* JWT Authentication
+* CRUD Users
+* CRUD Task Statuses
+* CRUD Labels
+* CRUD Tasks
+* Task Assignee Support
+* Task Labels Support
+* Data Validation
+* Swagger/OpenAPI Documentation
+
+## Tech Stack
+
+* Java 21
+* Spring Boot 3
+* Spring Security
+* Spring Data JPA
+* PostgreSQL
+* H2 Database
+* JWT
+* JUnit 5
+* JaCoCo
+* SonarCloud
+* GitHub Actions
+
+## Local Run
+
+```bash
+cd app
+./gradlew bootRun
+```
+
+Application will be available at:
+
+```text
+http://localhost:8080
+```
+
+## API Documentation
+
+```text
+http://localhost:8080/swagger-ui.html
+```
 
 ## Deploy
 
-https://java-project-99-vvbc.onrender.com/welcome
+```text
+https://java-project-99-vvbc.onrender.com
+```
