@@ -31,3 +31,11 @@ bin/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+node_modules/
+package-lock.json
+.idea/
+.gradle/
+build/
+out/
+*.iml
