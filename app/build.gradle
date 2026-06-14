@@ -36,10 +36,6 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-test {
-    useJUnitPlatform()
-}
-
 checkstyle {
     toolVersion = '10.21.2'
     configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
@@ -51,10 +47,17 @@ jacoco {
 
 jacocoTestReport {
     dependsOn test
+
     reports {
-        xml.required = true
-        html.required = true
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
     }
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
 
 sonar {
