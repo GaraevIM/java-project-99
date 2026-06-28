@@ -2,6 +2,7 @@ package hexlet.code.component;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -13,6 +14,9 @@ public class JwtTokenUtils {
 
     private final JwtEncoder jwtEncoder;
 
+    @Value("${jwt.expiration}")
+    private long jwtExpiration;
+
     public JwtTokenUtils(JwtEncoder jwtEncoder) {
         this.jwtEncoder = jwtEncoder;
     }
@@ -23,7 +27,7 @@ public class JwtTokenUtils {
         var claims = JwtClaimsSet.builder()
                 .issuer("java-project-99")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.DAYS))
+                .expiresAt(now.plus(jwtExpiration, ChronoUnit.SECONDS))
                 .subject(username)
                 .build();
 

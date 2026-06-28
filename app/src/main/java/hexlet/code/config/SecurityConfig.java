@@ -1,15 +1,18 @@
 package hexlet.code.config;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import java.security.SecureRandom;
+import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -22,14 +25,20 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AuthenticationProvider authenticationProvider
+    ) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
@@ -47,15 +56,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
+                .authenticationProvider(authenticationProvider)
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();
     }
 
     @Bean
     public SecretKey jwtSecretKey() {
-        var key = new byte[64];
-        SECURE_RANDOM.nextBytes(key);
-        return new SecretKeySpec(key, "HmacSHA256");
+        return new SecretKeySpec(
+                jwtSecret.getBytes(StandardCharsets.UTF_8),
+                "HmacSHA256"
+        );
     }
 
     @Bean
@@ -71,21 +82,20 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
+    public AuthenticationProvider authenticationProvider(
             UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder
     ) {
-        return authentication -> {
-            var username = authentication.getName();
-            var password = authentication.getCredentials().toString();
-            var userDetails = userDetailsService.loadUserByUsername(username);
+        var authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder);
+        return authenticationProvider;
+    }
 
-            if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-                throw new BadCredentialsException("Bad credentials");
-            }
-
-            return authentication;
-        };
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration
+    ) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
