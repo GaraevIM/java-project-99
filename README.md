@@ -56,6 +56,12 @@ http://localhost:8080/swagger-ui.html
 
 ## Deploy
 
-```text
-https://java-project-99-vvbc.onrender.com
-```
+[Task Manager](https://java-project-99-vvbc.onrender.com)
+
+## Demo Account
+
+For testing authentication:
+
+Email: hexlet@example.com
+
+Password: qwerty123
