@@ -10,3 +10,7 @@ spring:
 
 server:
   port: ${PORT:8080}
+
+jwt:
+  secret: ${JWT_SECRET:java-project-99-secret-key-for-jwt-token-very-long-string}
+  expiration: ${JWT_EXPIRATION:86400}
