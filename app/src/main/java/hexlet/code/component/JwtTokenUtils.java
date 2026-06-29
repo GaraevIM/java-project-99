@@ -14,7 +14,7 @@ public class JwtTokenUtils {
 
     private final JwtEncoder jwtEncoder;
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration:86400}")
     private long jwtExpiration;
 
     public JwtTokenUtils(JwtEncoder jwtEncoder) {
@@ -33,7 +33,8 @@ public class JwtTokenUtils {
 
         var header = JwsHeader.with(MacAlgorithm.HS256).build();
 
-        return jwtEncoder.encode(org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(header, claims))
-                .getTokenValue();
+        return jwtEncoder.encode(
+                org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(header, claims)
+        ).getTokenValue();
     }
 }
