@@ -31,7 +31,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:java-project-99-secret-key-for-jwt-token-very-long-string}")
     private String jwtSecret;
 
     @Bean
