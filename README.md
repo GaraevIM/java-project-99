@@ -7,33 +7,33 @@
 
 Менеджер задач, разработанный на Spring Boot.
 
-Приложение позволяет управлять пользователями, задачами, статусами задач и метками. Реализована JWT-аутентификация, валидация данных, REST API и документация Swagger/OpenAPI.
+Приложение позволяет управлять пользователями, задачами, статусами задач и метками. Реализована JWT-аутентификация, REST API, валидация данных и документация Swagger/OpenAPI.
 
 ## Features
 
-* JWT Authentication
-* CRUD Users
-* CRUD Task Statuses
-* CRUD Labels
-* CRUD Tasks
-* Task Assignee Support
-* Task Labels Support
-* Data Validation
-* Swagger/OpenAPI Documentation
+- JWT Authentication
+- CRUD Users
+- CRUD Task Statuses
+- CRUD Labels
+- CRUD Tasks
+- Task Assignee Support
+- Task Labels Support
+- Data Validation
+- Swagger/OpenAPI Documentation
 
 ## Tech Stack
 
-* Java 21
-* Spring Boot 3
-* Spring Security
-* Spring Data JPA
-* PostgreSQL
-* H2 Database
-* JWT
-* JUnit 5
-* JaCoCo
-* SonarCloud
-* GitHub Actions
+- Java 21
+- Spring Boot 3
+- Spring Security
+- Spring Data JPA
+- PostgreSQL
+- H2 Database
+- JWT
+- JUnit 5
+- JaCoCo
+- SonarCloud
+- GitHub Actions
 
 ## Local Run
 
@@ -42,26 +42,31 @@ cd app
 ./gradlew bootRun
 ```
 
-Application will be available at:
+Application:
 
 ```text
 http://localhost:8080
 ```
 
-## API Documentation
+Swagger:
 
 ```text
-http://localhost:8080/swagger-ui.html
+http://localhost:8080/swagger-ui/index.html
 ```
 
-## Deploy
+## Demo
 
-[Task Manager](https://java-project-99-vvbc.onrender.com)
+Application:
 
-## Demo Account
+https://java-project-99-vvbc.onrender.com/
 
-For testing authentication:
+Swagger:
 
-Email: hexlet@example.com
+https://java-project-99-vvbc.onrender.com/swagger-ui/index.html
 
-Password: qwerty123
+Credentials:
+
+```text
+Email: hexlet1@example.com
+Password: qwerty
+```
