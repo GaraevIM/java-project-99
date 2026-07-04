@@ -5,8 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0c9edc4a-259a-41a0-b75c-8793f9f900d5" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/hexlet/code/controller/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/hexlet/code/controller/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/hexlet/code/model/Label.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/hexlet/code/model/Label.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/hexlet/code/service/LabelService.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/hexlet/code/service/LabelService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/hexlet/code/service/TaskService.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/hexlet/code/service/TaskService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/hexlet/code/service/TaskStatusService.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/hexlet/code/service/TaskStatusService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/hexlet/code/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/hexlet/code/service/UserService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

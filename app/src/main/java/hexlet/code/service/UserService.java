@@ -4,6 +4,7 @@ import hexlet.code.dto.UserCreateDTO;
 import hexlet.code.dto.UserUpdateDTO;
 import hexlet.code.exception.ResourceConflictException;
 import hexlet.code.exception.ResourceNotFoundException;
+import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.UserRepository;
@@ -20,14 +21,18 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final UserMapper userMapper;
+
     public UserService(
             UserRepository userRepository,
             TaskRepository taskRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            UserMapper userMapper
     ) {
         this.userRepository = userRepository;
         this.taskRepository = taskRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
     public List<User> getAll() {
@@ -40,10 +45,7 @@ public class UserService {
     }
 
     public User create(UserCreateDTO data) {
-        var user = new User();
-        user.setFirstName(data.getFirstName());
-        user.setLastName(data.getLastName());
-        user.setEmail(data.getEmail());
+        var user = userMapper.map(data);
         user.setPassword(passwordEncoder.encode(data.getPassword()));
         return userRepository.save(user);
     }

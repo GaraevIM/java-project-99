@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -50,5 +51,21 @@ public class Label {
 
     public Set<Task> getTasks() {
         return tasks;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Label label)) {
+            return false;
+        }
+        return Objects.equals(id, label.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

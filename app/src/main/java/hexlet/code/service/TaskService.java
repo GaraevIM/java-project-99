@@ -3,6 +3,7 @@ package hexlet.code.service;
 import hexlet.code.dto.TaskCreateDTO;
 import hexlet.code.dto.TaskUpdateDTO;
 import hexlet.code.exception.ResourceNotFoundException;
+import hexlet.code.mapper.TaskMapper;
 import hexlet.code.model.Label;
 import hexlet.code.model.Task;
 import hexlet.code.repository.LabelRepository;
@@ -27,16 +28,20 @@ public class TaskService {
 
     private final LabelRepository labelRepository;
 
+    private final TaskMapper taskMapper;
+
     public TaskService(
             TaskRepository taskRepository,
             TaskStatusRepository taskStatusRepository,
             UserRepository userRepository,
-            LabelRepository labelRepository
+            LabelRepository labelRepository,
+            TaskMapper taskMapper
     ) {
         this.taskRepository = taskRepository;
         this.taskStatusRepository = taskStatusRepository;
         this.userRepository = userRepository;
         this.labelRepository = labelRepository;
+        this.taskMapper = taskMapper;
     }
 
     public List<Task> getAll(String titleCont, Long assigneeId, String status, Long labelId) {
@@ -53,10 +58,8 @@ public class TaskService {
         var status = taskStatusRepository.findBySlug(data.getStatus())
                 .orElseThrow(() -> new ResourceNotFoundException("Task status not found"));
 
-        var task = new Task();
-        task.setIndex(data.getIndex());
-        task.setTitle(data.getTitle());
-        task.setContent(data.getContent());
+        var task = taskMapper.map(data);
+
         task.setTaskStatus(status);
 
         if (data.getAssigneeId() != null) {

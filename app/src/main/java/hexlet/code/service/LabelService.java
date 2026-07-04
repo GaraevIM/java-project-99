@@ -4,6 +4,7 @@ import hexlet.code.dto.LabelCreateDTO;
 import hexlet.code.dto.LabelUpdateDTO;
 import hexlet.code.exception.ResourceConflictException;
 import hexlet.code.exception.ResourceNotFoundException;
+import hexlet.code.mapper.LabelMapper;
 import hexlet.code.model.Label;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
@@ -17,9 +18,16 @@ public class LabelService {
 
     private final TaskRepository taskRepository;
 
-    public LabelService(LabelRepository labelRepository, TaskRepository taskRepository) {
+    private final LabelMapper labelMapper;
+
+    public LabelService(
+            LabelRepository labelRepository,
+            TaskRepository taskRepository,
+            LabelMapper labelMapper
+    ) {
         this.labelRepository = labelRepository;
         this.taskRepository = taskRepository;
+        this.labelMapper = labelMapper;
     }
 
     public List<Label> getAll() {
@@ -32,8 +40,7 @@ public class LabelService {
     }
 
     public Label create(LabelCreateDTO data) {
-        var label = new Label();
-        label.setName(data.getName());
+        var label = labelMapper.map(data);
         return labelRepository.save(label);
     }
 

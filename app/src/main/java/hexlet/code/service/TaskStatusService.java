@@ -4,6 +4,7 @@ import hexlet.code.dto.TaskStatusCreateDTO;
 import hexlet.code.dto.TaskStatusUpdateDTO;
 import hexlet.code.exception.ResourceConflictException;
 import hexlet.code.exception.ResourceNotFoundException;
+import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
@@ -17,9 +18,16 @@ public class TaskStatusService {
 
     private final TaskRepository taskRepository;
 
-    public TaskStatusService(TaskStatusRepository taskStatusRepository, TaskRepository taskRepository) {
+    private final TaskStatusMapper taskStatusMapper;
+
+    public TaskStatusService(
+            TaskStatusRepository taskStatusRepository,
+            TaskRepository taskRepository,
+            TaskStatusMapper taskStatusMapper
+    ) {
         this.taskStatusRepository = taskStatusRepository;
         this.taskRepository = taskRepository;
+        this.taskStatusMapper = taskStatusMapper;
     }
 
     public List<TaskStatus> getAll() {
@@ -32,9 +40,7 @@ public class TaskStatusService {
     }
 
     public TaskStatus create(TaskStatusCreateDTO data) {
-        var status = new TaskStatus();
-        status.setName(data.getName());
-        status.setSlug(data.getSlug());
+        var status = taskStatusMapper.map(data);
         return taskStatusRepository.save(status);
     }
 
