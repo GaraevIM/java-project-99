@@ -13,7 +13,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
@@ -123,5 +125,24 @@ public class Task {
         var ids = new HashSet<Long>();
         labels.forEach(label -> ids.add(label.getId()));
         return ids;
+    }
+
+    @Override
+    public final boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (object == null || Hibernate.getClass(this) != Hibernate.getClass(object)) {
+            return false;
+        }
+
+        var task = (Task) object;
+        return id != null && Objects.equals(id, task.id);
+    }
+
+    @Override
+    public final int hashCode() {
+        return Hibernate.getClass(this).hashCode();
     }
 }

@@ -2,96 +2,22 @@ package hexlet.code.service;
 
 import hexlet.code.dto.UserCreateDTO;
 import hexlet.code.dto.UserUpdateDTO;
-import hexlet.code.exception.ResourceConflictException;
-import hexlet.code.exception.ResourceNotFoundException;
-import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
-import hexlet.code.repository.TaskRepository;
-import hexlet.code.repository.UserRepository;
 import java.util.List;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
-@Service
-public class UserService {
+public interface UserService {
 
-    private final UserRepository userRepository;
+    List<User> getAll();
 
-    private final TaskRepository taskRepository;
+    User getById(Long id);
 
-    private final PasswordEncoder passwordEncoder;
+    User create(UserCreateDTO data);
 
-    private final UserMapper userMapper;
+    User update(Long id, UserUpdateDTO data);
 
-    public UserService(
-            UserRepository userRepository,
-            TaskRepository taskRepository,
-            PasswordEncoder passwordEncoder,
-            UserMapper userMapper
-    ) {
-        this.userRepository = userRepository;
-        this.taskRepository = taskRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userMapper = userMapper;
-    }
+    void delete(Long id);
 
-    public List<User> getAll() {
-        return userRepository.findAll();
-    }
+    boolean isOwner(Long id, String email);
 
-    public User getById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    }
-
-    public User create(UserCreateDTO data) {
-        var user = userMapper.map(data);
-        user.setPassword(passwordEncoder.encode(data.getPassword()));
-        return userRepository.save(user);
-    }
-
-    public User update(Long id, UserUpdateDTO data) {
-        var user = getById(id);
-
-        if (data.getFirstName() != null) {
-            user.setFirstName(data.getFirstName());
-        }
-
-        if (data.getLastName() != null) {
-            user.setLastName(data.getLastName());
-        }
-
-        if (data.getEmail() != null) {
-            user.setEmail(data.getEmail());
-        }
-
-        if (data.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(data.getPassword()));
-        }
-
-        return userRepository.save(user);
-    }
-
-    public void delete(Long id) {
-        var user = getById(id);
-
-        if (taskRepository.existsByAssignee(user)) {
-            throw new ResourceConflictException("User has tasks");
-        }
-
-        userRepository.delete(user);
-    }
-
-    public boolean isOwner(Long id, String email) {
-        return getById(id).getEmail().equals(email);
-    }
-
-    public void createAdminIfNotExists() {
-        if (!userRepository.existsByEmail("hexlet@example.com")) {
-            var data = new UserCreateDTO();
-            data.setEmail("hexlet@example.com");
-            data.setPassword("qwerty");
-            create(data);
-        }
-    }
+    void createAdminIfNotExists();
 }

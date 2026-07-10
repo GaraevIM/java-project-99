@@ -17,20 +17,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private static final String ERROR_KEY = "error";
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException e) {
 
-        LOGGER.warn("Validation error", e);
-
         var message = e.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(error -> "%s: %s".formatted(error.getField(), error.getDefaultMessage()))
                 .collect(Collectors.joining(", "));
+
+        LOG.warn("Validation error: {}", message);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFoundException(ResourceNotFoundException e) {
 
-        LOGGER.warn("Resource not found", e);
+        LOG.warn("Resource not found: {}", e.getMessage());
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, String>> handleAuthenticationException(AuthenticationException e) {
 
-        LOGGER.warn("Authentication failed");
+        LOG.warn("Authentication failed");
 
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDeniedException(AccessDeniedException e) {
 
-        LOGGER.warn("Access denied");
+        LOG.warn("Access denied");
 
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<Map<String, String>> handleResourceConflictException(ResourceConflictException e) {
 
-        LOGGER.warn("Resource conflict", e);
+        LOG.warn("Resource conflict: {}", e.getMessage());
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)

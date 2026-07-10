@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
@@ -54,18 +55,21 @@ public class Label {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public final boolean equals(Object object) {
+        if (this == object) {
             return true;
         }
-        if (!(o instanceof Label label)) {
+
+        if (object == null || Hibernate.getClass(this) != Hibernate.getClass(object)) {
             return false;
         }
-        return Objects.equals(id, label.id);
+
+        var label = (Label) object;
+        return id != null && Objects.equals(id, label.id);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public final int hashCode() {
+        return Hibernate.getClass(this).hashCode();
     }
 }
