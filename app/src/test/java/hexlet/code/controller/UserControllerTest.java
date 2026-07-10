@@ -1,12 +1,16 @@
 package hexlet.code.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.repository.UserRepository;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -26,6 +30,9 @@ class UserControllerTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void testLogin() throws Exception {
@@ -53,10 +60,24 @@ class UserControllerTest {
 
     @Test
     void testGetUsers() throws Exception {
-        mockMvc.perform(get("/api/users")
+        var expectedIds = userRepository.findAll()
+                .stream()
+                .map(user -> user.getId())
+                .sorted()
+                .toList();
+
+        var result = mockMvc.perform(get("/api/users")
                         .header("Authorization", getAdminAuthHeader()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andReturn();
+
+        var responseBody = objectMapper.readTree(
+                result.getResponse().getContentAsString()
+        );
+
+        var actualIds = extractIds(responseBody);
+
+        assertThat(actualIds).containsExactlyElementsOf(expectedIds);
     }
 
     @Test
@@ -227,5 +248,12 @@ class UserControllerTest {
                     "password": "%s"
                 }
                 """.formatted(email, password);
+    }
+
+    private java.util.List<Long> extractIds(JsonNode responseBody) {
+        return StreamSupport.stream(responseBody.spliterator(), false)
+                .map(node -> node.get("id").asLong())
+                .sorted()
+                .toList();
     }
 }

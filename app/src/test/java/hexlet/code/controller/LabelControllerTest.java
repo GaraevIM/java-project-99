@@ -1,13 +1,17 @@
 package hexlet.code.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.UserRepository;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,6 +32,9 @@ class LabelControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     void testGetLabelsWithoutToken() throws Exception {
         mockMvc.perform(get("/api/labels"))
@@ -36,10 +43,24 @@ class LabelControllerTest {
 
     @Test
     void testGetLabels() throws Exception {
-        mockMvc.perform(get("/api/labels")
+        var expectedIds = labelRepository.findAll()
+                .stream()
+                .map(label -> label.getId())
+                .sorted()
+                .toList();
+
+        var result = mockMvc.perform(get("/api/labels")
                         .header("Authorization", getAuthHeader()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andReturn();
+
+        var responseBody = objectMapper.readTree(
+                result.getResponse().getContentAsString()
+        );
+
+        var actualIds = extractIds(responseBody);
+
+        assertThat(actualIds).containsExactlyElementsOf(expectedIds);
     }
 
     @Test
@@ -111,7 +132,9 @@ class LabelControllerTest {
     @Test
     void testCannotDeleteLabelWithTask() throws Exception {
         var labelId = createLabel("task label");
-        var assigneeId = userRepository.findByEmail("hexlet@example.com").orElseThrow().getId();
+        var assigneeId = userRepository.findByEmail("hexlet@example.com")
+                .orElseThrow()
+                .getId();
 
         mockMvc.perform(post("/api/tasks")
                         .header("Authorization", getAuthHeader())
@@ -176,5 +199,12 @@ class LabelControllerTest {
                     "label_ids": [%d]
                 }
                 """.formatted(assigneeId, labelId);
+    }
+
+    private java.util.List<Long> extractIds(JsonNode responseBody) {
+        return StreamSupport.stream(responseBody.spliterator(), false)
+                .map(node -> node.get("id").asLong())
+                .sorted()
+                .toList();
     }
 }

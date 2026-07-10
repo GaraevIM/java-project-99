@@ -1,14 +1,18 @@
 package hexlet.code.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -32,6 +36,9 @@ class TaskControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     void testGetTasksWithoutToken() throws Exception {
         mockMvc.perform(get("/api/tasks"))
@@ -40,10 +47,24 @@ class TaskControllerTest {
 
     @Test
     void testGetTasks() throws Exception {
-        mockMvc.perform(get("/api/tasks")
+        var expectedIds = taskRepository.findAll()
+                .stream()
+                .map(task -> task.getId())
+                .sorted()
+                .toList();
+
+        var result = mockMvc.perform(get("/api/tasks")
                         .header("Authorization", getAuthHeader()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andReturn();
+
+        var responseBody = objectMapper.readTree(
+                result.getResponse().getContentAsString()
+        );
+
+        var actualIds = extractIds(responseBody);
+
+        assertThat(actualIds).containsExactlyElementsOf(expectedIds);
     }
 
     @Test
@@ -61,7 +82,9 @@ class TaskControllerTest {
 
     @Test
     void testCreateTask() throws Exception {
-        var assigneeId = userRepository.findByEmail("hexlet@example.com").orElseThrow().getId();
+        var assigneeId = userRepository.findByEmail("hexlet@example.com")
+                .orElseThrow()
+                .getId();
 
         mockMvc.perform(post("/api/tasks")
                         .header("Authorization", getAuthHeader())
@@ -80,7 +103,12 @@ class TaskControllerTest {
         mockMvc.perform(post("/api/tasks")
                         .header("Authorization", getAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(taskJsonWithoutAssignee(15, "No assignee", "Content", "draft")))
+                        .content(taskJsonWithoutAssignee(
+                                15,
+                                "No assignee",
+                                "Content",
+                                "draft"
+                        )))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.index").value(15))
                 .andExpect(jsonPath("$.assignee_id").doesNotExist())
@@ -152,12 +180,20 @@ class TaskControllerTest {
 
     @Test
     void testCannotDeleteUserWithTask() throws Exception {
-        var assigneeId = userRepository.findByEmail("hexlet@example.com").orElseThrow().getId();
+        var assigneeId = userRepository.findByEmail("hexlet@example.com")
+                .orElseThrow()
+                .getId();
 
         mockMvc.perform(post("/api/tasks")
                         .header("Authorization", getAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(taskJson(20, assigneeId, "User related", "Content", "draft")))
+                        .content(taskJson(
+                                20,
+                                assigneeId,
+                                "User related",
+                                "Content",
+                                "draft"
+                        )))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(delete("/api/users/" + assigneeId)
@@ -200,7 +236,12 @@ class TaskControllerTest {
         var result = mockMvc.perform(post("/api/tasks")
                         .header("Authorization", getAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(taskJsonWithoutAssignee(10, title, content, status)))
+                        .content(taskJsonWithoutAssignee(
+                                10,
+                                title,
+                                content,
+                                status
+                        )))
                 .andExpect(status().isCreated())
                 .andReturn();
 
@@ -226,7 +267,12 @@ class TaskControllerTest {
                 """.formatted(index, assigneeId, title, content, status);
     }
 
-    private String taskJsonWithoutAssignee(Integer index, String title, String content, String status) {
+    private String taskJsonWithoutAssignee(
+            Integer index,
+            String title,
+            String content,
+            String status
+    ) {
         return """
                 {
                     "index": %d,
@@ -252,5 +298,12 @@ class TaskControllerTest {
                     "status": "%s"
                 }
                 """.formatted(status);
+    }
+
+    private java.util.List<Long> extractIds(JsonNode responseBody) {
+        return StreamSupport.stream(responseBody.spliterator(), false)
+                .map(node -> node.get("id").asLong())
+                .sorted()
+                .toList();
     }
 }

@@ -1,12 +1,16 @@
 package hexlet.code.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.repository.TaskStatusRepository;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -24,6 +28,9 @@ class TaskStatusControllerTest {
     @Autowired
     private TaskStatusRepository taskStatusRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     void testGetTaskStatusesWithoutToken() throws Exception {
         mockMvc.perform(get("/api/task_statuses"))
@@ -32,10 +39,24 @@ class TaskStatusControllerTest {
 
     @Test
     void testGetTaskStatuses() throws Exception {
-        mockMvc.perform(get("/api/task_statuses")
+        var expectedIds = taskStatusRepository.findAll()
+                .stream()
+                .map(taskStatus -> taskStatus.getId())
+                .sorted()
+                .toList();
+
+        var result = mockMvc.perform(get("/api/task_statuses")
                         .header("Authorization", getAuthHeader()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andReturn();
+
+        var responseBody = objectMapper.readTree(
+                result.getResponse().getContentAsString()
+        );
+
+        var actualIds = extractIds(responseBody);
+
+        assertThat(actualIds).containsExactlyElementsOf(expectedIds);
     }
 
     @Test
@@ -155,5 +176,12 @@ class TaskStatusControllerTest {
                     "name": "%s"
                 }
                 """.formatted(name);
+    }
+
+    private java.util.List<Long> extractIds(JsonNode responseBody) {
+        return StreamSupport.stream(responseBody.spliterator(), false)
+                .map(node -> node.get("id").asLong())
+                .sorted()
+                .toList();
     }
 }
