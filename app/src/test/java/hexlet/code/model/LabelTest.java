@@ -35,7 +35,7 @@ class LabelTest {
         assertEquals(first.hashCode(), second.hashCode());
 
         assertEquals(first, first);
-        assertNotEquals(first, null);
+        assertNotEquals(null, first);
         assertNotEquals(first, new Object());
     }
 }
