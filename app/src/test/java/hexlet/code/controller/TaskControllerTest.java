@@ -2,6 +2,7 @@ package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.model.Task;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
@@ -49,7 +50,7 @@ class TaskControllerTest {
     void testGetTasks() throws Exception {
         var expectedIds = taskRepository.findAll()
                 .stream()
-                .map(task -> task.getId())
+                .map(Task::getId)
                 .sorted()
                 .toList();
 

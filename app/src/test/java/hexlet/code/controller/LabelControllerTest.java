@@ -2,6 +2,7 @@ package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.model.Label;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.UserRepository;
 import java.util.stream.StreamSupport;
@@ -45,7 +46,7 @@ class LabelControllerTest {
     void testGetLabels() throws Exception {
         var expectedIds = labelRepository.findAll()
                 .stream()
-                .map(label -> label.getId())
+                .map(Label::getId)
                 .sorted()
                 .toList();
 

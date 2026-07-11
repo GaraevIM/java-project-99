@@ -2,6 +2,7 @@ package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskStatusRepository;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,7 @@ class TaskStatusControllerTest {
     void testGetTaskStatuses() throws Exception {
         var expectedIds = taskStatusRepository.findAll()
                 .stream()
-                .map(taskStatus -> taskStatus.getId())
+                .map(TaskStatus::getId)
                 .sorted()
                 .toList();
 

@@ -2,6 +2,7 @@ package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
@@ -62,7 +63,7 @@ class UserControllerTest {
     void testGetUsers() throws Exception {
         var expectedIds = userRepository.findAll()
                 .stream()
-                .map(user -> user.getId())
+                .map(User::getId)
                 .sorted()
                 .toList();
 
