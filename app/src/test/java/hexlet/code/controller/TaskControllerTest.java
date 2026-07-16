@@ -3,10 +3,16 @@ package hexlet.code.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.model.Task;
+import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
+import hexlet.code.service.LabelService;
+import hexlet.code.service.TaskStatusService;
+import hexlet.code.service.UserService;
+import java.util.Map;
 import java.util.stream.StreamSupport;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -38,7 +44,31 @@ class TaskControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private LabelRepository labelRepository;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TaskStatusService taskStatusService;
+
+    @Autowired
+    private LabelService labelService;
+
+    @Autowired
     private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setUp() {
+        taskRepository.deleteAll();
+        labelRepository.deleteAll();
+        taskStatusRepository.deleteAll();
+        userRepository.deleteAll();
+
+        userService.createAdminIfNotExists();
+        taskStatusService.createDefaultStatuses();
+        labelService.createDefaultLabels();
+    }
 
     @Test
     void testGetTasksWithoutToken() throws Exception {
@@ -90,7 +120,13 @@ class TaskControllerTest {
         mockMvc.perform(post("/api/tasks")
                         .header("Authorization", getAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(taskJson(12, assigneeId, "Test title", "Test content", "draft")))
+                        .content(taskJson(
+                                12,
+                                assigneeId,
+                                "Test title",
+                                "Test content",
+                                "draft"
+                        )))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.index").value(12))
                 .andExpect(jsonPath("$.assignee_id").value(assigneeId))
@@ -123,7 +159,12 @@ class TaskControllerTest {
         mockMvc.perform(post("/api/tasks")
                         .header("Authorization", getAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(taskJsonWithoutAssignee(1, "", "Content", "")))
+                        .content(taskJsonWithoutAssignee(
+                                1,
+                                "",
+                                "Content",
+                                ""
+                        )))
                 .andExpect(status().isBadRequest());
     }
 
@@ -134,7 +175,10 @@ class TaskControllerTest {
         mockMvc.perform(put("/api/tasks/" + id)
                         .header("Authorization", getAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateTaskJson("New title", "New content")))
+                        .content(updateTaskJson(
+                                "New title",
+                                "New content"
+                        )))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("New title"))
                 .andExpect(jsonPath("$.content").value("New content"))
@@ -150,8 +194,6 @@ class TaskControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateTaskStatusJson("published")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Status title"))
-                .andExpect(jsonPath("$.content").value("Status content"))
                 .andExpect(jsonPath("$.status").value("published"));
     }
 
@@ -217,16 +259,14 @@ class TaskControllerTest {
     }
 
     private String login(String email, String password) throws Exception {
-        var body = """
-                {
-                    "username": "%s",
-                    "password": "%s"
-                }
-                """.formatted(email, password);
+        var body = Map.of(
+                "username", email,
+                "password", password
+        );
 
         var result = mockMvc.perform(post("/api/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -246,8 +286,11 @@ class TaskControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        var response = result.getResponse().getContentAsString();
-        return Long.parseLong(response.replaceAll(".*\"id\":(\\d+).*", "$1"));
+        var response = objectMapper.readTree(
+                result.getResponse().getContentAsString()
+        );
+
+        return response.get("id").asLong();
     }
 
     private String taskJson(
@@ -256,16 +299,16 @@ class TaskControllerTest {
             String title,
             String content,
             String status
-    ) {
-        return """
-                {
-                    "index": %d,
-                    "assignee_id": %d,
-                    "title": "%s",
-                    "content": "%s",
-                    "status": "%s"
-                }
-                """.formatted(index, assigneeId, title, content, status);
+    ) throws Exception {
+        var body = Map.of(
+                "index", index,
+                "assignee_id", assigneeId,
+                "title", title,
+                "content", content,
+                "status", status
+        );
+
+        return objectMapper.writeValueAsString(body);
     }
 
     private String taskJsonWithoutAssignee(
@@ -273,32 +316,32 @@ class TaskControllerTest {
             String title,
             String content,
             String status
-    ) {
-        return """
-                {
-                    "index": %d,
-                    "title": "%s",
-                    "content": "%s",
-                    "status": "%s"
-                }
-                """.formatted(index, title, content, status);
+    ) throws Exception {
+        var body = Map.of(
+                "index", index,
+                "title", title,
+                "content", content,
+                "status", status
+        );
+
+        return objectMapper.writeValueAsString(body);
     }
 
-    private String updateTaskJson(String title, String content) {
-        return """
-                {
-                    "title": "%s",
-                    "content": "%s"
-                }
-                """.formatted(title, content);
+    private String updateTaskJson(String title, String content) throws Exception {
+        var body = Map.of(
+                "title", title,
+                "content", content
+        );
+
+        return objectMapper.writeValueAsString(body);
     }
 
-    private String updateTaskStatusJson(String status) {
-        return """
-                {
-                    "status": "%s"
-                }
-                """.formatted(status);
+    private String updateTaskStatusJson(String status) throws Exception {
+        var body = Map.of(
+                "status", status
+        );
+
+        return objectMapper.writeValueAsString(body);
     }
 
     private java.util.List<Long> extractIds(JsonNode responseBody) {

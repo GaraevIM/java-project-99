@@ -3,8 +3,16 @@ package hexlet.code.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.model.User;
+import hexlet.code.repository.LabelRepository;
+import hexlet.code.repository.TaskRepository;
+import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
+import hexlet.code.service.LabelService;
+import hexlet.code.service.TaskStatusService;
+import hexlet.code.service.UserService;
+import java.util.Map;
 import java.util.stream.StreamSupport;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,7 +41,37 @@ class UserControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private TaskRepository taskRepository;
+
+    @Autowired
+    private TaskStatusRepository taskStatusRepository;
+
+    @Autowired
+    private LabelRepository labelRepository;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TaskStatusService taskStatusService;
+
+    @Autowired
+    private LabelService labelService;
+
+    @Autowired
     private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setUp() {
+        taskRepository.deleteAll();
+        labelRepository.deleteAll();
+        taskStatusRepository.deleteAll();
+        userRepository.deleteAll();
+
+        userService.createAdminIfNotExists();
+        taskStatusService.createDefaultStatuses();
+        labelService.createDefaultLabels();
+    }
 
     @Test
     void testLogin() throws Exception {
@@ -83,7 +121,7 @@ class UserControllerTest {
 
     @Test
     void testGetUserById() throws Exception {
-        var user = userRepository.findAll().getFirst();
+        var user = userRepository.findByEmail("hexlet@example.com").orElseThrow();
 
         mockMvc.perform(get("/api/users/" + user.getId())
                         .header("Authorization", getAdminAuthHeader()))
@@ -127,7 +165,10 @@ class UserControllerTest {
         mockMvc.perform(put("/api/users/" + id)
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateJson("updated-user@example.com", "new-password")))
+                        .content(updateJson(
+                                "updated-user@example.com",
+                                "new-password"
+                        )))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("updated-user@example.com"))
                 .andExpect(jsonPath("$.firstName").value("Test"))
@@ -139,12 +180,18 @@ class UserControllerTest {
     void testUpdateAnotherUserForbidden() throws Exception {
         var firstUserId = createUser("first-forbidden@example.com");
         createUser("second-forbidden@example.com");
-        var secondUserToken = login("second-forbidden@example.com", "qwerty");
+        var secondUserToken = login(
+                "second-forbidden@example.com",
+                "qwerty"
+        );
 
         mockMvc.perform(put("/api/users/" + firstUserId)
                         .header("Authorization", "Bearer " + secondUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateJson("forbidden-update@example.com", "new-password")))
+                        .content(updateJson(
+                                "forbidden-update@example.com",
+                                "new-password"
+                        )))
                 .andExpect(status().isForbidden());
     }
 
@@ -180,7 +227,10 @@ class UserControllerTest {
     void testDeleteAnotherUserForbidden() throws Exception {
         var firstUserId = createUser("first-delete-forbidden@example.com");
         createUser("second-delete-forbidden@example.com");
-        var secondUserToken = login("second-delete-forbidden@example.com", "qwerty");
+        var secondUserToken = login(
+                "second-delete-forbidden@example.com",
+                "qwerty"
+        );
 
         mockMvc.perform(delete("/api/users/" + firstUserId)
                         .header("Authorization", "Bearer " + secondUserToken))
@@ -214,41 +264,54 @@ class UserControllerTest {
         var result = mockMvc.perform(post("/api/users")
                         .header("Authorization", getAdminAuthHeader())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(userJson(email, "Test", "User", "qwerty")))
+                        .content(userJson(
+                                email,
+                                "Test",
+                                "User",
+                                "qwerty"
+                        )))
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        var response = result.getResponse().getContentAsString();
-        return response.replaceAll(".*\"id\":(\\d+).*", "$1");
+        var response = objectMapper.readTree(
+                result.getResponse().getContentAsString()
+        );
+
+        return response.get("id").asText();
     }
 
-    private String loginJson(String email, String password) {
-        return """
-                {
-                    "username": "%s",
-                    "password": "%s"
-                }
-                """.formatted(email, password);
+    private String loginJson(String email, String password) throws Exception {
+        var data = Map.of(
+                "username", email,
+                "password", password
+        );
+
+        return objectMapper.writeValueAsString(data);
     }
 
-    private String userJson(String email, String firstName, String lastName, String password) {
-        return """
-                {
-                    "email": "%s",
-                    "firstName": "%s",
-                    "lastName": "%s",
-                    "password": "%s"
-                }
-                """.formatted(email, firstName, lastName, password);
+    private String userJson(
+            String email,
+            String firstName,
+            String lastName,
+            String password
+    ) throws Exception {
+        var data = Map.of(
+                "email", email,
+                "firstName", firstName,
+                "lastName", lastName,
+                "password", password
+        );
+
+        return objectMapper.writeValueAsString(data);
     }
 
-    private String updateJson(String email, String password) {
-        return """
-                {
-                    "email": "%s",
-                    "password": "%s"
-                }
-                """.formatted(email, password);
+    private String updateJson(String email, String password) throws Exception {
+        var data = Map.of(
+                "email", email,
+                "password", password
+        );
+
+        return objectMapper.writeValueAsString(data);
     }
 
     private java.util.List<Long> extractIds(JsonNode responseBody) {

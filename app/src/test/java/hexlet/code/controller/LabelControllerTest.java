@@ -4,8 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.model.Label;
 import hexlet.code.repository.LabelRepository;
+import hexlet.code.repository.TaskRepository;
+import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
+import hexlet.code.service.LabelService;
+import hexlet.code.service.TaskStatusService;
+import hexlet.code.service.UserService;
+import java.util.Map;
 import java.util.stream.StreamSupport;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,7 +41,34 @@ class LabelControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private TaskRepository taskRepository;
+
+    @Autowired
+    private TaskStatusRepository taskStatusRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TaskStatusService taskStatusService;
+
+    @Autowired
+    private LabelService labelService;
+
+    @BeforeEach
+    void setUp() {
+        taskRepository.deleteAll();
+        labelRepository.deleteAll();
+        taskStatusRepository.deleteAll();
+        userRepository.deleteAll();
+
+        userService.createAdminIfNotExists();
+        taskStatusService.createDefaultStatuses();
+        labelService.createDefaultLabels();
+    }
 
     @Test
     void testGetLabelsWithoutToken() throws Exception {
@@ -153,16 +187,14 @@ class LabelControllerTest {
     }
 
     private String login(String email, String password) throws Exception {
-        var body = """
-                {
-                    "username": "%s",
-                    "password": "%s"
-                }
-                """.formatted(email, password);
+        var body = Map.of(
+                "username", email,
+                "password", password
+        );
 
         var result = mockMvc.perform(post("/api/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -177,29 +209,32 @@ class LabelControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        var response = result.getResponse().getContentAsString();
-        return Long.parseLong(response.replaceAll(".*\"id\":(\\d+).*", "$1"));
+        var response = objectMapper.readTree(
+                result.getResponse().getContentAsString()
+        );
+
+        return response.get("id").asLong();
     }
 
-    private String labelJson(String name) {
-        return """
-                {
-                    "name": "%s"
-                }
-                """.formatted(name);
+    private String labelJson(String name) throws Exception {
+        var body = Map.of(
+                "name", name
+        );
+
+        return objectMapper.writeValueAsString(body);
     }
 
-    private String taskJson(Long assigneeId, Long labelId) {
-        return """
-                {
-                    "index": 100,
-                    "assignee_id": %d,
-                    "title": "Task with label",
-                    "content": "Content",
-                    "status": "draft",
-                    "label_ids": [%d]
-                }
-                """.formatted(assigneeId, labelId);
+    private String taskJson(Long assigneeId, Long labelId) throws Exception {
+        var body = Map.of(
+                "index", 100,
+                "assignee_id", assigneeId,
+                "title", "Task with label",
+                "content", "Content",
+                "status", "draft",
+                "label_ids", java.util.List.of(labelId)
+        );
+
+        return objectMapper.writeValueAsString(body);
     }
 
     private java.util.List<Long> extractIds(JsonNode responseBody) {

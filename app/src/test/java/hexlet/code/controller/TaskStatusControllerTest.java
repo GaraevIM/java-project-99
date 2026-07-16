@@ -3,8 +3,16 @@ package hexlet.code.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.model.TaskStatus;
+import hexlet.code.repository.LabelRepository;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
+import hexlet.code.repository.UserRepository;
+import hexlet.code.service.LabelService;
+import hexlet.code.service.TaskStatusService;
+import hexlet.code.service.UserService;
+import java.util.Map;
 import java.util.stream.StreamSupport;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -30,7 +38,37 @@ class TaskStatusControllerTest {
     private TaskStatusRepository taskStatusRepository;
 
     @Autowired
+    private TaskRepository taskRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private LabelRepository labelRepository;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TaskStatusService taskStatusService;
+
+    @Autowired
+    private LabelService labelService;
+
+    @Autowired
     private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setUp() {
+        taskRepository.deleteAll();
+        labelRepository.deleteAll();
+        taskStatusRepository.deleteAll();
+        userRepository.deleteAll();
+
+        userService.createAdminIfNotExists();
+        taskStatusService.createDefaultStatuses();
+        labelService.createDefaultLabels();
+    }
 
     @Test
     void testGetTaskStatusesWithoutToken() throws Exception {
@@ -134,16 +172,14 @@ class TaskStatusControllerTest {
     }
 
     private String login(String email, String password) throws Exception {
-        var body = """
-                {
-                    "username": "%s",
-                    "password": "%s"
-                }
-                """.formatted(email, password);
+        var body = Map.of(
+                "username", email,
+                "password", password
+        );
 
         var result = mockMvc.perform(post("/api/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(objectMapper.writeValueAsString(body)))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -158,25 +194,28 @@ class TaskStatusControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        var response = result.getResponse().getContentAsString();
-        return response.replaceAll(".*\"id\":(\\d+).*", "$1");
+        var response = objectMapper.readTree(
+                result.getResponse().getContentAsString()
+        );
+
+        return response.get("id").asText();
     }
 
-    private String taskStatusJson(String name, String slug) {
-        return """
-                {
-                    "name": "%s",
-                    "slug": "%s"
-                }
-                """.formatted(name, slug);
+    private String taskStatusJson(String name, String slug) throws Exception {
+        var body = Map.of(
+                "name", name,
+                "slug", slug
+        );
+
+        return objectMapper.writeValueAsString(body);
     }
 
-    private String updateTaskStatusJson(String name) {
-        return """
-                {
-                    "name": "%s"
-                }
-                """.formatted(name);
+    private String updateTaskStatusJson(String name) throws Exception {
+        var body = Map.of(
+                "name", name
+        );
+
+        return objectMapper.writeValueAsString(body);
     }
 
     private java.util.List<Long> extractIds(JsonNode responseBody) {
