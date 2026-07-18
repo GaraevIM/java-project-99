@@ -1,11 +1,11 @@
 package hexlet.code.controller;
 
-import hexlet.code.exception.ResourceConflictException;
 import hexlet.code.exception.ResourceNotFoundException;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -67,13 +67,15 @@ public class GlobalExceptionHandler {
                 .body(Map.of(ERROR_KEY, "Forbidden"));
     }
 
-    @ExceptionHandler(ResourceConflictException.class)
-    public ResponseEntity<Map<String, String>> handleResourceConflictException(ResourceConflictException e) {
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(
+            DataIntegrityViolationException e
+    ) {
 
-        LOG.warn("Resource conflict: {}", e.getMessage());
+        LOG.warn("Data integrity violation", e);
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body(Map.of(ERROR_KEY, e.getMessage()));
+                .body(Map.of(ERROR_KEY, "Resource is in use or violates database constraints"));
     }
 }

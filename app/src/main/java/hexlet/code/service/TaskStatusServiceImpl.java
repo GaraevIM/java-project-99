@@ -2,7 +2,6 @@ package hexlet.code.service;
 
 import hexlet.code.dto.TaskStatusCreateDTO;
 import hexlet.code.dto.TaskStatusUpdateDTO;
-import hexlet.code.exception.ResourceConflictException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
@@ -65,11 +64,6 @@ public class TaskStatusServiceImpl implements TaskStatusService {
     @Override
     public void delete(Long id) {
         var status = getById(id);
-
-        if (taskRepository.existsByTaskStatus(status)) {
-            throw new ResourceConflictException("Task status has tasks");
-        }
-
         taskStatusRepository.delete(status);
     }
 

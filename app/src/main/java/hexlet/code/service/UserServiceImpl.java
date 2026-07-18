@@ -2,7 +2,6 @@ package hexlet.code.service;
 
 import hexlet.code.dto.UserCreateDTO;
 import hexlet.code.dto.UserUpdateDTO;
-import hexlet.code.exception.ResourceConflictException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
@@ -79,11 +78,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long id) {
         var user = getById(id);
-
-        if (taskRepository.existsByAssignee(user)) {
-            throw new ResourceConflictException("User has tasks");
-        }
-
         userRepository.delete(user);
     }
 

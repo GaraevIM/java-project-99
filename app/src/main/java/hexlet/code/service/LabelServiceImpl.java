@@ -2,7 +2,6 @@ package hexlet.code.service;
 
 import hexlet.code.dto.LabelCreateDTO;
 import hexlet.code.dto.LabelUpdateDTO;
-import hexlet.code.exception.ResourceConflictException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.LabelMapper;
 import hexlet.code.model.Label;
@@ -61,11 +60,6 @@ public class LabelServiceImpl implements LabelService {
     @Override
     public void delete(Long id) {
         var label = getById(id);
-
-        if (taskRepository.existsByLabelsContaining(label)) {
-            throw new ResourceConflictException("Label has tasks");
-        }
-
         labelRepository.delete(label);
     }
 
