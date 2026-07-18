@@ -30,6 +30,11 @@ dependencies {
 
     implementation 'org.mapstruct:mapstruct:1.6.3'
 
+    compileOnly 'org.projectlombok:lombok:1.18.46'
+    annotationProcessor 'org.projectlombok:lombok:1.18.46'
+    testCompileOnly 'org.projectlombok:lombok:1.18.46'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.46'
+
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
@@ -39,12 +44,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-
-    testCompileOnly 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 checkstyle {
@@ -82,7 +81,8 @@ sonar {
         property 'sonar.tests', "${project.projectDir}/src/test/java"
         property 'sonar.java.binaries', "${project.buildDir}/classes/java/main"
         property 'sonar.java.test.binaries', "${project.buildDir}/classes/java/test"
-        property 'sonar.coverage.jacoco.xmlReportPaths', "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+        property 'sonar.coverage.jacoco.xmlReportPaths',
+                "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
 
         property 'sonar.exclusions', '**/build/**,**/gradle/**'
         property 'sonar.cpd.exclusions', '**/dto/**'
