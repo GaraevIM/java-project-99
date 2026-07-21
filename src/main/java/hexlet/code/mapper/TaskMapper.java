@@ -1,6 +1,7 @@
 package hexlet.code.mapper;
 
 import hexlet.code.dto.TaskCreateDTO;
+import hexlet.code.dto.TaskDTO;
 import hexlet.code.model.Task;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,4 +18,9 @@ public interface TaskMapper {
     @Mapping(target = "assigneeId", ignore = true)
     @Mapping(target = "taskLabelIds", ignore = true)
     Task map(TaskCreateDTO dto);
+
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "assigneeId", source = "assigneeId")
+    @Mapping(target = "taskLabelIds", source = "taskLabelIds")
+    TaskDTO map(Task task);
 }
