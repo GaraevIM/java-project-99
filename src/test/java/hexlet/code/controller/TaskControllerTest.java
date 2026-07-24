@@ -60,10 +60,10 @@ class TaskControllerTest {
 
     @BeforeEach
     void setUp() {
-        taskRepository.deleteAll();
-        labelRepository.deleteAll();
-        taskStatusRepository.deleteAll();
-        userRepository.deleteAll();
+        taskRepository.deleteAllInBatch();
+        labelRepository.deleteAllInBatch();
+        taskStatusRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
 
         userService.createAdminIfNotExists();
         taskStatusService.createDefaultStatuses();
